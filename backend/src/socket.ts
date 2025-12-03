@@ -41,9 +41,9 @@ export function initSocket(server: HTTPServer) {
       socket.join(conversationId);
     });
 
-    socket.on("message:send", async (data: { conversationId: string; content?: string; imageUrl?: string }) => {
-      const { conversationId, content, imageUrl } = data;
-      if (!conversationId || (!content && !imageUrl)) return;
+    socket.on("message:send", async (data: { conversationId: string; content?: string; imageUrl?: string; fileUrl?: string; fileName?: string }) => {
+      const { conversationId, content, imageUrl, fileUrl, fileName } = data;
+      if (!conversationId || (!content && !imageUrl && !fileUrl)) return;
 
       const conversation = await Conversation.findById(conversationId);
       if (!conversation) return;
@@ -55,6 +55,8 @@ export function initSocket(server: HTTPServer) {
         sender: payload.userId,
         content: content?.trim(),
         imageUrl,
+        fileUrl,
+        fileName,
         status: "sent",
       });
 
@@ -69,6 +71,8 @@ export function initSocket(server: HTTPServer) {
         sender: sanitizeUser(populated.sender as UserDocument),
         content: populated.content,
         imageUrl: populated.imageUrl,
+        fileUrl: populated.fileUrl,
+        fileName: populated.fileName,
         status: message.status,
         createdAt: populated.createdAt,
       };

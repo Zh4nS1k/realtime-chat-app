@@ -7,6 +7,8 @@ const MessageSchema = new Schema<MessageDocument>(
     sender: { type: Schema.Types.ObjectId, ref: "User", required: true },
     content: { type: String },
     imageUrl: { type: String },
+    fileUrl: { type: String },
+    fileName: { type: String },
     status: { type: String, enum: ["sent", "delivered", "read"], default: "sent" },
   },
   { timestamps: true }

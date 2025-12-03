@@ -56,6 +56,8 @@ export const resolvers = {
         conversationId: args.conversationId,
         content: m.content,
         imageUrl: m.imageUrl,
+        fileUrl: m.fileUrl,
+        fileName: m.fileName,
         sender: sanitizeUser(m.sender as any),
         status: m.status,
         createdAt: m.createdAt,
@@ -134,13 +136,13 @@ export const resolvers = {
     },
     sendMessage: async (
       _parent: unknown,
-      args: { conversationId: string; content?: string; imageUrl?: string },
+      args: { conversationId: string; content?: string; imageUrl?: string; fileUrl?: string; fileName?: string },
       ctx: GraphQLContext
     ) => {
       await connectDb();
       if (!ctx.user) throw new Error("Unauthorized");
-      const { conversationId, content, imageUrl } = args;
-      if (!conversationId || (!content && !imageUrl)) throw new Error("Message content or image is required");
+      const { conversationId, content, imageUrl, fileUrl, fileName } = args;
+      if (!conversationId || (!content && !imageUrl && !fileUrl)) throw new Error("Message content or file is required");
       const conversation = await Conversation.findById(conversationId);
       if (!conversation) throw new Error("Conversation not found");
       const isMember = conversation.participants.some((p: unknown) => String(p) === ctx.user!._id.toString());
@@ -150,6 +152,8 @@ export const resolvers = {
         sender: ctx.user._id,
         content: content?.trim(),
         imageUrl,
+        fileUrl,
+        fileName,
         status: "sent",
       });
       // Immediately mark as delivered for now
@@ -161,6 +165,8 @@ export const resolvers = {
         conversationId,
         content: populated.content,
         imageUrl: populated.imageUrl,
+        fileUrl: populated.fileUrl,
+        fileName: populated.fileName,
         sender: sanitizeUser(populated.sender as any),
         status: message.status,
         createdAt: populated.createdAt,

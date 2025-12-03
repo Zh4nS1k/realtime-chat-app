@@ -13,6 +13,8 @@ export const typeDefs = gql`
     conversationId: ID!
     content: String
     imageUrl: String
+    fileUrl: String
+    fileName: String
     sender: User!
     status: String!
     createdAt: String
@@ -44,7 +46,7 @@ export const typeDefs = gql`
     login(email: String!, password: String!): AuthPayload!
     startDm(userId: ID!): Conversation!
     createGroup(name: String!, participantIds: [ID!]!): Conversation!
-    sendMessage(conversationId: ID!, content: String, imageUrl: String): Message!
+    sendMessage(conversationId: ID!, content: String, imageUrl: String, fileUrl: String, fileName: String): Message!
     markRead(conversationId: ID!): Boolean!
   }
 `;

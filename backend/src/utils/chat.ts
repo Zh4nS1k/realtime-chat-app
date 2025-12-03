@@ -20,6 +20,8 @@ export async function buildConversationPayload(conversation: ConversationDocumen
           conversationId: conversation._id.toString(),
           content: lastMessage.content,
           imageUrl: lastMessage.imageUrl,
+          fileUrl: (lastMessage as any).fileUrl,
+          fileName: (lastMessage as any).fileName,
           sender: sanitizeUser(lastMessage.sender as UserDocument),
           createdAt: lastMessage.createdAt,
         }
