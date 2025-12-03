@@ -17,6 +17,7 @@ export async function buildConversationPayload(conversation: ConversationDocumen
     lastMessage: lastMessage
       ? {
           _id: lastMessage._id.toString(),
+          conversationId: conversation._id.toString(),
           content: lastMessage.content,
           imageUrl: lastMessage.imageUrl,
           sender: sanitizeUser(lastMessage.sender as UserDocument),
