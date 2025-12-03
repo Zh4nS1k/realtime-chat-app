@@ -55,7 +55,12 @@ export function initSocket(server: HTTPServer) {
         sender: payload.userId,
         content: content?.trim(),
         imageUrl,
+        status: "sent",
       });
+
+      // mark delivered immediately
+      message.status = "delivered";
+      await message.save();
 
       const populated = await message.populate("sender", "username email");
       const messagePayload = {
@@ -64,11 +69,38 @@ export function initSocket(server: HTTPServer) {
         sender: sanitizeUser(populated.sender as UserDocument),
         content: populated.content,
         imageUrl: populated.imageUrl,
+        status: message.status,
         createdAt: populated.createdAt,
       };
 
       io?.to(conversationId).emit("message:new", messagePayload);
       io?.to(conversationId).emit("conversation:activity", { conversationId, lastMessage: messagePayload });
+    });
+
+    socket.on("typing:start", async (data: { conversationId: string }) => {
+      const { conversationId } = data;
+      if (!conversationId) return;
+      const conversation = await Conversation.findById(conversationId);
+      if (!conversation) return;
+      const isMember = conversation.participants.some((id: unknown) => String(id) === payload.userId);
+      if (!isMember) return;
+      socket.to(conversationId).emit("typing:start", {
+        conversationId,
+        username: (socket.data as any).userDoc.username,
+      });
+    });
+
+    socket.on("typing:stop", async (data: { conversationId: string }) => {
+      const { conversationId } = data;
+      if (!conversationId) return;
+      const conversation = await Conversation.findById(conversationId);
+      if (!conversation) return;
+      const isMember = conversation.participants.some((id: unknown) => String(id) === payload.userId);
+      if (!isMember) return;
+      socket.to(conversationId).emit("typing:stop", {
+        conversationId,
+        username: (socket.data as any).userDoc.username,
+      });
     });
   });
 

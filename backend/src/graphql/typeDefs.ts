@@ -14,6 +14,7 @@ export const typeDefs = gql`
     content: String
     imageUrl: String
     sender: User!
+    status: String!
     createdAt: String
   }
 
@@ -44,5 +45,6 @@ export const typeDefs = gql`
     startDm(userId: ID!): Conversation!
     createGroup(name: String!, participantIds: [ID!]!): Conversation!
     sendMessage(conversationId: ID!, content: String, imageUrl: String): Message!
+    markRead(conversationId: ID!): Boolean!
   }
 `;

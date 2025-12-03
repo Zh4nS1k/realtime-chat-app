@@ -2,7 +2,7 @@ import { api } from "./api-client";
 import type { AuthUser } from "@/store/auth";
 import type { ChatMessage, Conversation } from "@/store/chat";
 
-async function gql<T>(query: string, variables?: Record<string, any>): Promise<T> {
+async function gql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
   const { data } = await api.post("/graphql", { query, variables });
   if (data.errors?.length) {
     throw new Error(data.errors[0]?.message || "GraphQL error");
@@ -170,10 +170,22 @@ export async function sendMessage(payload: { conversationId: string; content?: s
           imageUrl
           createdAt
           sender { _id username email }
+          status
         }
       }
     `,
     payload
   );
   return data.sendMessage;
+}
+
+export async function markConversationRead(conversationId: string) {
+  await gql<{ markRead: boolean }>(
+    `
+      mutation MarkRead($conversationId: ID!) {
+        markRead(conversationId: $conversationId)
+      }
+    `,
+    { conversationId }
+  );
 }

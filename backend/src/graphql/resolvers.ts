@@ -57,6 +57,7 @@ export const resolvers = {
         content: m.content,
         imageUrl: m.imageUrl,
         sender: sanitizeUser(m.sender as any),
+        status: m.status,
         createdAt: m.createdAt,
       }));
     },
@@ -149,7 +150,11 @@ export const resolvers = {
         sender: ctx.user._id,
         content: content?.trim(),
         imageUrl,
+        status: "sent",
       });
+      // Immediately mark as delivered for now
+      message.status = "delivered";
+      await message.save();
       const populated = await message.populate("sender", "username email");
       const payloadMessage = {
         _id: message._id.toString(),
@@ -157,6 +162,7 @@ export const resolvers = {
         content: populated.content,
         imageUrl: populated.imageUrl,
         sender: sanitizeUser(populated.sender as any),
+        status: message.status,
         createdAt: populated.createdAt,
       };
       const io = getIO();
@@ -165,6 +171,43 @@ export const resolvers = {
         io.to(conversationId.toString()).emit("conversation:activity", { conversationId, lastMessage: payloadMessage });
       }
       return payloadMessage;
+    },
+    markRead: async (_parent: unknown, args: { conversationId: string }, ctx: GraphQLContext) => {
+      await connectDb();
+      if (!ctx.user) throw new Error("Unauthorized");
+      const conversation = await Conversation.findById(args.conversationId);
+      if (!conversation) throw new Error("Conversation not found");
+      const isMember = conversation.participants.some((p: unknown) => String(p) === ctx.user!._id.toString());
+      if (!isMember) throw new Error("Forbidden");
+
+      const updated = await Message.updateMany(
+        {
+          conversation: args.conversationId,
+          sender: { $ne: ctx.user._id },
+          status: { $ne: "read" },
+        },
+        { $set: { status: "read" } }
+      );
+
+      if (updated.modifiedCount > 0) {
+        const io = getIO();
+        if (io) {
+          const messages = await Message.find({
+            conversation: args.conversationId,
+            sender: { $ne: ctx.user._id },
+            status: "read",
+          }).select("_id status conversation");
+          messages.forEach((m) => {
+            io.to(args.conversationId).emit("message:status", {
+              messageId: m._id.toString(),
+              conversationId: args.conversationId,
+              status: "read",
+            });
+          });
+        }
+      }
+
+      return true;
     },
   },
 };

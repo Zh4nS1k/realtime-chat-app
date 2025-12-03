@@ -30,6 +30,7 @@ export interface MessageDocument extends mongoose.Document {
   sender: mongoose.Types.ObjectId;
   content?: string;
   imageUrl?: string;
+  status: "sent" | "delivered" | "read";
   createdAt: Date;
   updatedAt: Date;
 }

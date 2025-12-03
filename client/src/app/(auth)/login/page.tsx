@@ -5,18 +5,55 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { loginUser } from "@/lib/actions";
 import { useAuthStore } from "@/store/auth";
+import { useUiStore } from "@/store/ui";
+
+const translations = {
+  ru: {
+    title: "Войти",
+    subtitle: "Добро пожаловать в realtime чат.",
+    email: "Email",
+    password: "Пароль",
+    submit: "Войти",
+    noAccount: "Нет аккаунта?",
+    signup: "Зарегистрироваться",
+    theme: "Тема",
+    language: "Язык",
+    loading: "Загрузка...",
+    ru: "Рус",
+    en: "Eng",
+    error: "Ошибка входа",
+  },
+  en: {
+    title: "Sign in",
+    subtitle: "Welcome back to realtime chat.",
+    email: "Email",
+    password: "Password",
+    submit: "Sign in",
+    noAccount: "No account?",
+    signup: "Sign up",
+    theme: "Theme",
+    language: "Language",
+    loading: "Loading...",
+    ru: "Рус",
+    en: "Eng",
+    error: "Login error",
+  },
+};
 
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth, token, hydrate, isHydrated } = useAuthStore();
+  const { language, setLanguage, theme, toggleTheme, hydrate: hydrateUi } = useUiStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const copy = translations[language];
 
   useEffect(() => {
     hydrate();
-  }, [hydrate]);
+    hydrateUi();
+  }, [hydrate, hydrateUi]);
 
   useEffect(() => {
     if (isHydrated && token) {
@@ -38,7 +75,7 @@ export default function LoginPage() {
         typeof err === "object" && err !== null && "response" in err
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : null;
-      setError(message || "Ошибка входа");
+      setError(message || copy.error);
     } finally {
       setLoading(false);
     }
@@ -46,13 +83,36 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-slate-100">
-      <div className="w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-xl ring-1 ring-slate-100 backdrop-blur">
-        <h1 className="text-2xl font-semibold text-slate-900">Войти</h1>
-        <p className="mt-1 text-sm text-slate-500">Добро пожаловать в realtime чат.</p>
+      <div className="w-full max-w-md space-y-4 rounded-2xl bg-white/90 p-8 shadow-xl ring-1 ring-slate-100 backdrop-blur">
+        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+          <div className="text-sm font-semibold text-slate-800">{copy.language}</div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLanguage("ru")}
+              className={`rounded-lg px-3 py-1 text-xs font-semibold ${language === "ru" ? "bg-emerald-500 text-white" : "text-slate-600"}`}
+            >
+              {copy.ru}
+            </button>
+            <button
+              onClick={() => setLanguage("en")}
+              className={`rounded-lg px-3 py-1 text-xs font-semibold ${language === "en" ? "bg-emerald-500 text-white" : "text-slate-600"}`}
+            >
+              {copy.en}
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
+            >
+              {copy.theme}: {theme === "dark" ? "Dark" : "Light"}
+            </button>
+          </div>
+        </div>
+        <h1 className="text-2xl font-semibold text-slate-900">{copy.title}</h1>
+        <p className="text-sm text-slate-500">{copy.subtitle}</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="text-sm font-semibold text-slate-700">Email</label>
+            <label className="text-sm font-semibold text-slate-700">{copy.email}</label>
             <input
               type="email"
               required
@@ -62,7 +122,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-semibold text-slate-700">Пароль</label>
+            <label className="text-sm font-semibold text-slate-700">{copy.password}</label>
             <input
               type="password"
               required
@@ -77,13 +137,13 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-50"
           >
-            {loading ? "Загрузка..." : "Войти"}
+            {loading ? copy.loading : copy.submit}
           </button>
         </form>
         <p className="mt-4 text-sm text-slate-500">
-          Нет аккаунта?{" "}
+          {copy.noAccount}{" "}
           <Link href="/signup" className="font-semibold text-emerald-600 hover:text-emerald-700">
-            Зарегистрироваться
+            {copy.signup}
           </Link>
         </p>
       </div>

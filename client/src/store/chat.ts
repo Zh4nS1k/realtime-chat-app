@@ -7,6 +7,7 @@ export type ChatMessage = {
   sender: AuthUser;
   content?: string;
   imageUrl?: string;
+  status?: "sent" | "delivered" | "read";
   createdAt: string;
 };
 
@@ -17,23 +18,32 @@ export type Conversation = {
   participants: AuthUser[];
   lastMessage: ChatMessage | null;
   updatedAt?: string;
+  unread?: number;
 };
 
 type ChatState = {
   conversations: Conversation[];
   messages: Record<string, ChatMessage[]>;
   activeConversationId?: string;
+  activeFilter: "all" | "dm" | "group";
+  typing: Record<string, string[]>; // conversationId -> usernames typing
   setConversations: (conversations: Conversation[]) => void;
   upsertConversation: (conversation: Conversation) => void;
   setActiveConversation: (conversationId: string) => void;
+  setFilter: (filter: "all" | "dm" | "group") => void;
   setMessages: (conversationId: string, messages: ChatMessage[]) => void;
   addMessage: (conversationId: string, message: ChatMessage) => void;
+  addTyping: (conversationId: string, username: string) => void;
+  removeTyping: (conversationId: string, username: string) => void;
+  updateMessageStatus: (conversationId: string, messageId: string, status: ChatMessage["status"]) => void;
 };
 
 export const useChatStore = create<ChatState>((set) => ({
   conversations: [],
   messages: {},
   activeConversationId: undefined,
+  activeFilter: "all",
+  typing: {},
   setConversations: (conversations) =>
     set((state) => ({
       conversations: conversations.sort((a, b) => {
@@ -61,6 +71,7 @@ export const useChatStore = create<ChatState>((set) => ({
       return { conversations: updated };
     }),
   setActiveConversation: (conversationId) => set({ activeConversationId: conversationId }),
+  setFilter: (filter) => set({ activeFilter: filter }),
   setMessages: (conversationId, messages) =>
     set((state) => ({
       messages: { ...state.messages, [conversationId]: messages },
@@ -69,9 +80,39 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => {
       const existing = state.messages[conversationId] || [];
       const updatedMessages = [...existing, message];
+      const conversations = state.conversations.map((conv) => {
+        if (conv._id === conversationId) {
+          const unread = conv._id === state.activeConversationId ? 0 : (conv.unread || 0) + 1;
+          return { ...conv, lastMessage: message, updatedAt: message.createdAt, unread };
+        }
+        return conv;
+      });
+      const typing = { ...state.typing };
+      delete typing[conversationId]; // clear typing on new message arrival
+      return { messages: { ...state.messages, [conversationId]: updatedMessages }, conversations, typing };
+    }),
+  addTyping: (conversationId, username) =>
+    set((state) => {
+      const list = state.typing[conversationId] || [];
+      if (list.includes(username)) return state;
+      return { typing: { ...state.typing, [conversationId]: [...list, username] } };
+    }),
+  removeTyping: (conversationId, username) =>
+    set((state) => {
+      const list = state.typing[conversationId] || [];
+      const next = list.filter((u) => u !== username);
+      return { typing: { ...state.typing, [conversationId]: next } };
+    }),
+  updateMessageStatus: (conversationId, messageId, status) =>
+    set((state) => {
+      const msgs = state.messages[conversationId];
+      if (!msgs) return state;
+      const updatedMsgs = msgs.map((m) => (m._id === messageId ? { ...m, status } : m));
       const conversations = state.conversations.map((conv) =>
-        conv._id === conversationId ? { ...conv, lastMessage: message, updatedAt: message.createdAt } : conv
+        conv._id === conversationId && conv.lastMessage?._id === messageId
+          ? { ...conv, lastMessage: { ...conv.lastMessage, status } as ChatMessage }
+          : conv
       );
-      return { messages: { ...state.messages, [conversationId]: updatedMessages }, conversations };
+      return { messages: { ...state.messages, [conversationId]: updatedMsgs }, conversations };
     }),
 }));
