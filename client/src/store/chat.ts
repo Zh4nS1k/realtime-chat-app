@@ -7,6 +7,8 @@ export type ChatMessage = {
   sender: AuthUser;
   content?: string;
   imageUrl?: string;
+  fileUrl?: string;
+  fileName?: string;
   status?: "sent" | "delivered" | "read";
   createdAt: string;
 };

@@ -1,4 +1,4 @@
-import type { Server as IOServer } from "socket.io";
+import type { Server as IOServer } from 'socket.io';
 
 let io: IOServer | null = null;
 

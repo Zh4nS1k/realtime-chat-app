@@ -77,6 +77,8 @@ export async function fetchConversations() {
             _id
             content
             imageUrl
+            fileUrl
+            fileName
             createdAt
             sender { _id username email }
             conversationId
@@ -149,8 +151,11 @@ export async function fetchMessages(conversationId: string) {
           conversationId
           content
           imageUrl
+          fileUrl
+          fileName
           createdAt
           sender { _id username email }
+          status
         }
       }
     `,
@@ -162,12 +167,14 @@ export async function fetchMessages(conversationId: string) {
 export async function sendMessage(payload: { conversationId: string; content?: string; imageUrl?: string }) {
   const data = await gql<{ sendMessage: ChatMessage }>(
     `
-      mutation SendMessage($conversationId: ID!, $content: String, $imageUrl: String) {
-        sendMessage(conversationId: $conversationId, content: $content, imageUrl: $imageUrl) {
+      mutation SendMessage($conversationId: ID!, $content: String, $imageUrl: String, $fileUrl: String, $fileName: String) {
+        sendMessage(conversationId: $conversationId, content: $content, imageUrl: $imageUrl, fileUrl: $fileUrl, fileName: $fileName) {
           _id
           conversationId
           content
           imageUrl
+          fileUrl
+          fileName
           createdAt
           sender { _id username email }
           status

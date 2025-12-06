@@ -1,54 +1,60 @@
 'use client';
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { registerUser } from "@/lib/actions";
-import { useAuthStore } from "@/store/auth";
-import { useUiStore } from "@/store/ui";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { registerUser } from '@/lib/actions';
+import { useAuthStore } from '@/store/auth';
+import { useUiStore } from '@/store/ui';
 
 const translations = {
   ru: {
-    title: "Регистрация",
-    subtitle: "Создайте аккаунт и начните общаться.",
-    email: "Email",
-    username: "Имя пользователя",
-    password: "Пароль",
-    submit: "Создать аккаунт",
-    haveAccount: "Уже есть аккаунт?",
-    login: "Войти",
-    theme: "Тема",
-    language: "Язык",
-    loading: "Загрузка...",
-    ru: "Рус",
-    en: "Eng",
-    error: "Ошибка регистрации",
+    title: 'Регистрация',
+    subtitle: 'Создайте аккаунт и начните общаться.',
+    email: 'Email',
+    username: 'Имя пользователя',
+    password: 'Пароль',
+    submit: 'Создать аккаунт',
+    haveAccount: 'Уже есть аккаунт?',
+    login: 'Войти',
+    theme: 'Тема',
+    language: 'Язык',
+    loading: 'Загрузка...',
+    ru: 'Рус',
+    en: 'Eng',
+    error: 'Ошибка регистрации',
   },
   en: {
-    title: "Sign up",
-    subtitle: "Create an account and start chatting.",
-    email: "Email",
-    username: "Username",
-    password: "Password",
-    submit: "Create account",
-    haveAccount: "Already have an account?",
-    login: "Sign in",
-    theme: "Theme",
-    language: "Language",
-    loading: "Loading...",
-    ru: "Рус",
-    en: "Eng",
-    error: "Signup error",
+    title: 'Sign up',
+    subtitle: 'Create an account and start chatting.',
+    email: 'Email',
+    username: 'Username',
+    password: 'Password',
+    submit: 'Create account',
+    haveAccount: 'Already have an account?',
+    login: 'Sign in',
+    theme: 'Theme',
+    language: 'Language',
+    loading: 'Loading...',
+    ru: 'Рус',
+    en: 'Eng',
+    error: 'Signup error',
   },
 };
 
 export default function SignupPage() {
   const router = useRouter();
   const { setAuth, token, hydrate, isHydrated } = useAuthStore();
-  const { language, setLanguage, theme, toggleTheme, hydrate: hydrateUi } = useUiStore();
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    language,
+    setLanguage,
+    theme,
+    toggleTheme,
+    hydrate: hydrateUi,
+  } = useUiStore();
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const copy = translations[language];
@@ -60,7 +66,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (isHydrated && token) {
-      router.replace("/");
+      router.replace('/');
     }
   }, [token, isHydrated, router]);
 
@@ -71,12 +77,13 @@ export default function SignupPage() {
     try {
       const data = await registerUser({ email, username, password });
       setAuth(data);
-      router.push("/");
+      router.push('/');
     } catch (err: unknown) {
       console.error(err);
       const message =
-        typeof err === "object" && err !== null && "response" in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        typeof err === 'object' && err !== null && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
           : null;
       setError(message || copy.error);
     } finally {
@@ -85,79 +92,131 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-slate-100">
-      <div className="w-full max-w-md space-y-4 rounded-2xl bg-white/90 p-8 shadow-xl ring-1 ring-slate-100 backdrop-blur">
-        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-          <div className="text-sm font-semibold text-slate-800">{copy.language}</div>
-          <div className="flex items-center gap-2">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--ios-bg)] p-4 ios-animate-fade-in">
+      <div className="w-full max-w-md space-y-6 ios-animate-scale-in">
+        {/* Header Controls */}
+        <div className="flex items-center justify-end gap-2">
+          <div className="ios-glass flex items-center gap-1 rounded-full px-2 py-1.5 shadow-sm">
             <button
-              onClick={() => setLanguage("ru")}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold ${language === "ru" ? "bg-emerald-500 text-white" : "text-slate-600"}`}
+              onClick={() => setLanguage('ru')}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                language === 'ru'
+                  ? 'bg-[var(--ios-blue)] text-white shadow-sm'
+                  : 'text-[var(--ios-text-secondary)] hover:text-[var(--ios-text-primary)]'
+              }`}
             >
               {copy.ru}
             </button>
             <button
-              onClick={() => setLanguage("en")}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold ${language === "en" ? "bg-emerald-500 text-white" : "text-slate-600"}`}
+              onClick={() => setLanguage('en')}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                language === 'en'
+                  ? 'bg-[var(--ios-blue)] text-white shadow-sm'
+                  : 'text-[var(--ios-text-secondary)] hover:text-[var(--ios-text-primary)]'
+              }`}
             >
               {copy.en}
             </button>
-            <button
-              onClick={toggleTheme}
-              className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
-            >
-              {copy.theme}: {theme === "dark" ? "Dark" : "Light"}
-            </button>
           </div>
-        </div>
-        <h1 className="text-2xl font-semibold text-slate-900">{copy.title}</h1>
-        <p className="text-sm text-slate-500">{copy.subtitle}</p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div>
-            <label className="text-sm font-semibold text-slate-700">{copy.email}</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-slate-700">{copy.username}</label>
-            <input
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-slate-700">{copy.password}</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-          {error && <p className="text-sm font-semibold text-rose-500">{error}</p>}
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-50"
+            onClick={toggleTheme}
+            className="ios-glass ios-button flex h-9 w-9 items-center justify-center rounded-full shadow-sm"
+            aria-label="Toggle theme"
           >
-            {loading ? copy.loading : copy.submit}
+            {theme === 'dark' ? '🌙' : '☀️'}
           </button>
-        </form>
-        <p className="mt-4 text-sm text-slate-500">
-          {copy.haveAccount}{" "}
-          <Link href="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">
-            {copy.login}
-          </Link>
-        </p>
+        </div>
+
+        {/* Card */}
+        <div className="ios-glass rounded-3xl p-8 shadow-lg">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-[var(--ios-text-primary)] mb-2">
+              {copy.title}
+            </h1>
+            <p className="text-[15px] text-[var(--ios-text-secondary)]">
+              {copy.subtitle}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-[var(--ios-text-secondary)] uppercase tracking-wide">
+                {copy.email}
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="ios-input w-full rounded-2xl px-4 py-3.5 text-[15px] text-[var(--ios-text-primary)] placeholder:text-[var(--ios-text-tertiary)]"
+                placeholder="example@email.com"
+                autoComplete="email"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-[var(--ios-text-secondary)] uppercase tracking-wide">
+                {copy.username}
+              </label>
+              <input
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="ios-input w-full rounded-2xl px-4 py-3.5 text-[15px] text-[var(--ios-text-primary)] placeholder:text-[var(--ios-text-tertiary)]"
+                placeholder="username"
+                autoComplete="username"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-[var(--ios-text-secondary)] uppercase tracking-wide">
+                {copy.password}
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="ios-input w-full rounded-2xl px-4 py-3.5 text-[15px] text-[var(--ios-text-primary)] placeholder:text-[var(--ios-text-tertiary)]"
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+            </div>
+
+            {error && (
+              <div className="rounded-2xl bg-[var(--ios-red)]/10 border border-[var(--ios-red)]/20 px-4 py-3">
+                <p className="text-sm font-semibold text-[var(--ios-red)]">
+                  {error}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || !email || !username || !password}
+              className="ios-button w-full rounded-2xl bg-gradient-to-r from-[var(--ios-blue)] to-[var(--ios-blue-dark)] px-6 py-4 text-[16px] font-semibold text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  {copy.loading}
+                </span>
+              ) : (
+                copy.submit
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-[15px] text-[var(--ios-text-secondary)]">
+            {copy.haveAccount}{' '}
+            <Link
+              href="/login"
+              className="font-semibold text-[var(--ios-blue)] hover:underline"
+            >
+              {copy.login}
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   );
